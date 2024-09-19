@@ -77,9 +77,9 @@ Vamos explicar os resultados apresentados pelo simulador com base no código ass
 
 ### Código Assembly (`input-g1.asm`)
 
-#### Carregar valores em registradores:
+#### Exemplo de código assembly para calcular potenciação: x^y
 
-##### Exemplo de código assembly para calcular potenciação: x^y
+##### Carregar valores em registradores:
 
 - `addi x1, x0, 3` – Carrega o valor 3 no registrador `x1`.
 - `addi x2, x0, 4` – Carregar expoente y = 4 em `x2`.
