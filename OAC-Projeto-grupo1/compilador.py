@@ -52,7 +52,7 @@ def convert_asm_to_binary(asm_file):
 
     # Primeira passagem: encontrar rótulos
     with open(asm_file, 'r') as file:
-        current_line = 0
+        current_line = 1
         for line in file:
             line = line.strip()
             if not line or line.startswith('#'):
@@ -66,13 +66,14 @@ def convert_asm_to_binary(asm_file):
 
     # Segunda passagem: converter instruções para binário
     with open(asm_file, 'r') as file:
+        current_line = 0
         for line in file:
             line = line.strip()
 
             # Ignorar comentários e linhas vazias
             if not line or line.startswith('#'):
                 continue
-
+            
             # Remover comentários embutidos na linha
             if '#' in line:
                 line = line.split('#')[0].strip()
@@ -80,14 +81,14 @@ def convert_asm_to_binary(asm_file):
             if ':' in line:
                 continue  # Ignorar rótulos na segunda passagem
 
-            parts = line.split()
+            parts = line.split()  # Divide por vírgula e limpa espaços
             instruction = parts[0]
 
             if instruction not in instruction_set:
                 raise ValueError(f"Instrução desconhecida: {instruction}")
 
             opcode = instruction_set[instruction]
-            func3 = func3_set.get(instruction, '000')  
+            func3 = func3_set.get(instruction, '000')
 
             # Instruções do tipo R (e.g., add, sub, mul)
             if instruction in ['add', 'sub', 'mul', 'or']:
@@ -105,20 +106,36 @@ def convert_asm_to_binary(asm_file):
                 imm = format((1 << 12) + imm_value, '012b') if imm_value < 0 else format(imm_value, '012b')
                 binary_instruction = imm + rs1 + func3 + rd + opcode
 
-            elif instruction in ['sd']:  # Instrução de armazenamento (S-Type)
-                rs2 = registers.get(parts[1].replace(',', ''), '00000')
-                offset_and_rs1 = parts[2].replace(')', '').split('(')
-                offset, rs1 = offset_and_rs1
-                rs1 = registers.get(rs1, '00000')
-                imm_value = int(offset)
-                imm = format((1 << 12) + imm_value, '012b') if imm_value < 0 else format(imm_value, '012b')
-                imm_high = imm[:7]  # Os 7 bits superiores do imediato
-                imm_low = imm[7:]  # Os 5 bits inferiores do imediato
-                binary_instruction = imm_high + rs2 + rs1 + func3 + imm_low + opcode
+            elif instruction == 'jal':
+                rd = registers.get(parts[1].replace(',', ''), '00000')
+                label = parts[2]
+                if label not in labels:
+                    raise ValueError(f"Rótulo não encontrado: {label}")
+                offset =  current_line - labels[label]
+                imm = format(offset & 0xFFF, '020b')
+                binary_instruction = imm + rd + opcode
+
+            elif instruction == 'beq':
+                if len(parts) < 4:
+                    raise ValueError(f"Instrução 'beq' mal formada: {line}")
+                rs1 = registers.get(parts[1].replace(',', ''), '00000')  # Primeiro registrador
+                rs2 = registers.get(parts[2].replace(',', ''), '00000')  # Segundo registrador
+                label = parts[3].strip()  # Rótulo
+
+                if label not in labels:
+                    raise ValueError(f"Rótulo não encontrado: {label}")
+
+                target_address = labels[label]
+                current_address = current_line 
+                offset = target_address - current_address+1
+                imm = format(offset & 0xFFF, '012b')  # Manter apenas os 12 bits relevantes
+                # Corrigido: a ordem dos registradores
+                binary_instruction = imm + rs2 + rs1  + func3 + opcode
 
             # Garantir que a instrução tenha 32 bits
             binary_instruction = binary_instruction.ljust(32, '0')
             binary_instructions.append(binary_instruction)
+            current_line += 1
 
     output_file = asm_file.replace('.asm', '.txt')
     with open(output_file, 'w') as file:

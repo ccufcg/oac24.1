@@ -26,6 +26,7 @@ class HRISCVSimulator:
         imm = int(imm_bin, 2) if imm_bin[0] == '0' else int(imm_bin, 2) - (1 << 12)
 
         print(f"📥 Imediato lido: {imm} (binário: {imm_bin})")
+        
 
         # Verificação de registradores
         if not (0 <= rd < len(self.registers)) or not (0 <= rs1 < len(self.registers)) or (opcode == '0110011' and not (0 <= rs2 < len(self.registers))):
@@ -49,18 +50,20 @@ class HRISCVSimulator:
                 self.registers[rd] = self.registers[rs1] + imm
                 print(f"🧮 Executando ADDI: rd={rd}, rs1={rs1}, imm={imm}, resultado={self.registers[rd]}")
         elif opcode == '1100011':  # B-Type ('beq')
+            func3 = instruction[22:25]
             if func3 == '000':  # 'beq'
                 if self.registers[rs1] == self.registers[rs2]:
                     print(f"🔀 BEQ: registradores iguais (rs1={rs1}, rs2={rs2}), desvio para PC={self.pc + imm}")
                     self.pc += imm  # Ajusta o PC para o rótulo
                     return True  # Salto ocorreu, não incrementar o PC automaticamente
         elif opcode == '1101111':  # J-Type ('jal')
-            imm = int(instruction[:20], 2)  # Extraindo o imediato para JAL
-            imm = imm if imm < (1 << 19) else imm - (1 << 20)  # Tratar o imediato como sinalizado
-            print(f"🏃 Executando JAL: salto para PC={self.pc + imm}")
-            self.pc += imm  # Ajusta o PC para o rótulo do loop
+        # Extraindo o imediato para JAL
+            
+            imm = (int(instruction[12:20], 2) << 1) | (int(instruction[11], 2) << 11) | (int(instruction[10:1:-1], 2) << 1) | (int(instruction[0], 2) << 19)
+            imm = imm if imm < (1 << 20) else imm - (1 << 21)  # Tratar o imediato como sinalizado
+            print(f"🏃 Executando JAL: salto para PC={imm}")
+            self.pc = imm  # Ajusta o PC para o rótulo do loop
             return True  # Salto ocorreu, não incrementar o PC automaticamente
-
         # Garantir que r0 seja sempre 0
         self.registers[0] = 0
         return False
