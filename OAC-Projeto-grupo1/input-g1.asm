@@ -1,7 +1,8 @@
-addi x1, x0, 3       # Carregar base x = 3 em x1
-addi x2, x0, 4       # Carregar expoente y = 5 em x2 (mude aqui para testar outros expoentes)
+addi x1, x0, 2       # Carregar base x = 3 em x1
+addi x2, x0, 0       # Carregar expoente y = 5 em x2 (mude aqui para testar outros expoentes)
 addi x3, x0, 1       # Inicializar resultado (x^0 = 1) em x3
 addi x4, x0, 0       # Inicializar contador em x4
+beq x2, x0, end      # Se o expoente for 0, salta para o fim
 loop:
     mul x3, x3, x1   # Multiplica resultado por x (x3 = x3 * x1)
     addi x4, x4, 1   # Incrementa o contador

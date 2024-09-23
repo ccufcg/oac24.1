@@ -92,6 +92,7 @@ def convert_asm_to_binary(asm_file):
 
             # Instruções do tipo R (e.g., add, sub, mul)
             if instruction in ['add', 'sub', 'mul', 'or']:
+                
                 rd = registers.get(parts[1].replace(',', ''), '00000')
                 rs1 = registers.get(parts[2].replace(',', ''), '00000')
                 rs2 = registers.get(parts[3], '00000')
@@ -121,13 +122,13 @@ def convert_asm_to_binary(asm_file):
                 rs1 = registers.get(parts[1].replace(',', ''), '00000')  # Primeiro registrador
                 rs2 = registers.get(parts[2].replace(',', ''), '00000')  # Segundo registrador
                 label = parts[3].strip()  # Rótulo
-
                 if label not in labels:
                     raise ValueError(f"Rótulo não encontrado: {label}")
 
                 target_address = labels[label]
                 current_address = current_line 
-                offset = target_address - current_address+1
+                
+                offset = target_address - current_address
                 imm = format(offset & 0xFFF, '012b')  # Manter apenas os 12 bits relevantes
                 # Corrigido: a ordem dos registradores
                 binary_instruction = imm + rs2 + rs1  + func3 + opcode
