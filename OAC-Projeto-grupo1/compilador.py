@@ -66,7 +66,7 @@ def convert_asm_to_binary(asm_file):
 
     # Segunda passagem: converter instruções para binário
     with open(asm_file, 'r') as file:
-        current_line = 0
+        current_line = 1
         for line in file:
             line = line.strip()
 
@@ -113,7 +113,12 @@ def convert_asm_to_binary(asm_file):
                 if label not in labels:
                     raise ValueError(f"Rótulo não encontrado: {label}")
                 offset =  current_line - labels[label]
+                print(offset)
+                print(current_line)
+                print(labels[label])
+                
                 imm = format(offset & 0xFFF, '020b')
+                print(imm)
                 binary_instruction = imm + rd + opcode
 
             elif instruction == 'beq':
@@ -129,6 +134,7 @@ def convert_asm_to_binary(asm_file):
                 current_address = current_line 
                 
                 offset = target_address - current_address
+                
                 imm = format(offset & 0xFFF, '012b')  # Manter apenas os 12 bits relevantes
                 # Corrigido: a ordem dos registradores
                 binary_instruction = imm + rs2 + rs1  + func3 + opcode

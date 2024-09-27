@@ -57,16 +57,21 @@ class HRISCVSimulator:
                 if self.registers[rs1] == self.registers[rs2]:
                     
                     print(f"🔀 BEQ: registradores iguais (rs1={rs1}, rs2={rs2}), desvio para PC={self.pc + imm}")
-                    self.pc += imm  # Ajusta o PC para o rótulo
+                    
+                    self.pc += imm
+                    self.pc+=1# Ajusta o PC para o rótulo
                     return True  # Salto ocorreu, não incrementar o PC automaticamente
         elif opcode == '1101111':  # J-Type ('jal')
         # Extraindo o imediato para JAL
             
-            imm = (int(instruction[12:20], 2) << 1) | (int(instruction[11], 2) << 11) | (int(instruction[10:1:-1], 2) << 1) | (int(instruction[0], 2) << 19)
+            imm = (int(instruction[12:20], 2)) 
             imm = imm if imm < (1 << 20) else imm - (1 << 21)  # Tratar o imediato como sinalizado
             print(f"🏃 Executando JAL: salto para PC={imm}")
-            print(self.pc)
-            self.pc = imm  # Ajusta o PC para o rótulo do loop
+            
+            
+            self.pc -= imm  # Ajusta o PC para o rótulo do loop
+            
+           
             return True  # Salto ocorreu, não incrementar o PC automaticamente
         # Garantir que r0 seja sempre 0
         self.registers[0] = 0
